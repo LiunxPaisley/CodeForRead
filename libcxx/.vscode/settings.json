@@ -43,6 +43,7 @@
         "strstream": "cpp",
         "xiosbase": "cpp",
         "iomanip": "cpp",
-        "__functional_03": "cpp"
+        "__functional_03": "cpp",
+        "utility": "cpp"
     }
 }
