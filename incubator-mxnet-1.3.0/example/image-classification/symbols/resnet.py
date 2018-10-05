@@ -106,13 +106,16 @@ def resnet(units, num_stages, filter_list, num_classes, image_shape, bottle_neck
     """
     num_unit = len(units)
     assert(num_unit == num_stages)
+    # 先搞一个数据层，设定数据层的数据格式
     data = mx.sym.Variable(name='data')
     if dtype == 'float32':
         data = mx.sym.identity(data=data, name='id')
     else:
         if dtype == 'float16':
             data = mx.sym.Cast(data=data, dtype=np.float16)
+    # 搞一个BN层
     data = mx.sym.BatchNorm(data=data, fix_gamma=True, eps=2e-5, momentum=bn_mom, name='bn_data')
+    # 根据图片大小，加入一个卷积层，图片过大还要加BN层，激活层和池化层
     (nchannel, height, width) = image_shape
     if height <= 32:            # such as cifar10
         body = mx.sym.Convolution(data=data, num_filter=filter_list[0], kernel=(3, 3), stride=(1,1), pad=(1, 1),
@@ -124,10 +127,12 @@ def resnet(units, num_stages, filter_list, num_classes, image_shape, bottle_neck
         body = mx.sym.Activation(data=body, act_type='relu', name='relu0')
         body = mx.sym.Pooling(data=body, kernel=(3, 3), stride=(2,2), pad=(1,1), pool_type='max')
 
+    # 对于每一个阶段，加入一个residual_unit单元
     for i in range(num_stages):
         body = residual_unit(body, filter_list[i+1], (1 if i==0 else 2, 1 if i==0 else 2), False,
                              name='stage%d_unit%d' % (i + 1, 1), bottle_neck=bottle_neck, workspace=workspace,
                              memonger=memonger)
+        # 每个residual_unit单元后面跟着几个别的residual_unit单元
         for j in range(units[i]-1):
             body = residual_unit(body, filter_list[i+1], (1,1), True, name='stage%d_unit%d' % (i + 1, j + 2),
                                  bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)

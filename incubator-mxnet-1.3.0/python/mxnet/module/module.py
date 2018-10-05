@@ -79,6 +79,7 @@ class Module(BaseModule):
             context = [context]
         self._context = context
         if work_load_list is None:
+            # [1] * 4 : [1, 1, 1, 1] 
             work_load_list = [1] * len(self._context)
         assert len(work_load_list) == len(self._context)
         self._work_load_list = work_load_list

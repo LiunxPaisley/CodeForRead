@@ -65,11 +65,18 @@ if __name__ == '__main__':
         lr             = .05,
         lr_step_epochs = '200,250',
     )
+    # 获得所有的参数
+    # parse_args() 的返回值是一个命名空间，包含传递给命令的参数。该对象将参数保存其属性，
+    # 因此如果你的参数 dest 是 "myoption"，那么你就可以args.myoption 来访问该值。
     args = parser.parse_args()
 
     # load network
     from importlib import import_module
+    # 根据参数中的网络名称导入需要的网络，在symbols文件夹中
     net = import_module('symbols.'+args.network)
+    # *args 是用来发送一个非键值对的可变数量的参数列表给一个函数.
+    # **kwargs 允许你将不定长度的键值对, 作为参数传递给一个函数。 如果你想要在一个函数里处理带名字的参数, 你应该使用**kwargs。
+    # vars返回args的属性和属性值的字典对象，加入**之后作为get_symbol的**kwarg参数传入
     sym = net.get_symbol(**vars(args))
 
     # train
