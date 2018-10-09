@@ -72,11 +72,12 @@ if __name__ == '__main__':
 
     # load network
     from importlib import import_module
-    # 根据参数中的网络名称导入需要的网络，在symbols文件夹中
+    # 根据参数中的网络名称导入需要的网网络文件，这里是resnet.py，在symbols文件夹中
     net = import_module('symbols.'+args.network)
     # *args 是用来发送一个非键值对的可变数量的参数列表给一个函数.
     # **kwargs 允许你将不定长度的键值对, 作为参数传递给一个函数。 如果你想要在一个函数里处理带名字的参数, 你应该使用**kwargs。
     # vars返回args的属性和属性值的字典对象，加入**之后作为get_symbol的**kwarg参数传入
+    # 根据网络的结构返回了一个resnet实例，作为symbol
     sym = net.get_symbol(**vars(args))
 
     # train

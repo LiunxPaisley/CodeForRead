@@ -2530,6 +2530,7 @@ def var(name, attr=None, shape=None, lr_mult=None, wd_mult=None, dtype=None,
 
 
 # for back compatibility
+# resnet.py生成的data层的调用
 Variable = var
 
 

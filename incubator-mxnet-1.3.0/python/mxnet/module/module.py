@@ -590,16 +590,18 @@ class Module(BaseModule):
             Default is ``None``, which means ``is_train`` takes the value of ``self.for_training``.
         """
         assert self.binded and self.params_initialized
-
+        # 把shape变成一个元组
         curr_data_shapes = tuple(i.shape for i in self._data_shapes)
         if isinstance(data_batch, list):
             assert data_batch is not None, "Encountered empty data batch"
             new_data_shapes = []
             for i in range(len(data_batch[0].data)):
+                # 对于data_batch[0]中的每个data元素，判断shape的正确性
                 shape = data_batch[0].data[i].shape
                 for db in data_batch:
                     assert shape == db.data[i].shape, \
                         "All data batches in a list need to have the same shape"
+                # shape[0]乘以data_batch的数量，再接上剩余的shape，得到新的shape
                 new_batch_size = len(data_batch) * shape[0]
                 new_data_shapes.append((new_batch_size,) + shape[1:])
             new_data_shapes = tuple(new_data_shapes)
