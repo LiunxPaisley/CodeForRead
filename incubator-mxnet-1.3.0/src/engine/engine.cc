@@ -30,6 +30,7 @@
 namespace mxnet {
 namespace engine {
 inline Engine* CreateEngine() {
+    // 读取环境变量
   const char *type = getenv("MXNET_ENGINE_TYPE");
   const bool default_engine = (type == nullptr);
   if (type == nullptr) type = "ThreadedEnginePerDevice";
