@@ -163,6 +163,7 @@ class ThreadedEnginePerDevice : public ThreadedEngine
                 {
                     // 拷贝操作
                     const size_t nthread = gpu_copy_nthreads_;
+                   
                     auto ptr = gpu_copy_workers_.Get(ctx.dev_id, [this, ctx, is_copy, nthread]() {
                         // Signify to kernel that GPU is being used, so reserve cores as necessary
                         OpenMP::Get()->set_reserve_cores(GetReserveCoreCount(true));
@@ -213,10 +214,15 @@ class ThreadedEnginePerDevice : public ThreadedEngine
                     else
                     {
                         // GPU normal task
+                        // 返回一个ThreadWorkerBlock指针，指针对象中的初始化由下面lambda表达式完成
+                        // （即在Get函数中调用这个lambda表达式，新建一个ThreadWorkerBlock对象，并
+                        // 用智能指针封装，返回给ptr）
                         auto ptr = gpu_normal_workers_.Get(ctx.dev_id, [this, ctx, is_copy, nthread]() {
                             // Signify to kernel that GPU is being used, so reserve cores as necessary
                             OpenMP::Get()->set_reserve_cores(GetReserveCoreCount(true));
+                            // 新建一个ThreadWorkerBlock对象
                             auto blk = new ThreadWorkerBlock<kWorkerQueue>();
+                            // 初始化pool成员，线程执行的函数就是下面的lambda表达式
                             blk->pool.reset(new ThreadPool(
                                 nthread,
                                 [this, ctx, is_copy, blk](std::shared_ptr<dmlc::ManualEvent> ready_event) {
