@@ -214,15 +214,16 @@ class ThreadedEnginePerDevice : public ThreadedEngine
                     else
                     {
                         // GPU normal task
-                        // 返回一个ThreadWorkerBlock指针，指针对象中的初始化由下面lambda表达式完成
-                        // （即在Get函数中调用这个lambda表达式，新建一个ThreadWorkerBlock对象，并
-                        // 用智能指针封装，返回给ptr）
+                        // 每一个设备都有一个ThreadWorkerBlock<kWorkerQueue>，即都包含一个任务队列
+                        // 从LazyAllocArray中获取一个设备的ThreadWorkerBlock<kWorkerQueue>智能指针ptr，如果这个ptr存在则直接返回
+                        // ptr不存在则执行后面的lambda表达式，用其返回值初始化ptr
                         auto ptr = gpu_normal_workers_.Get(ctx.dev_id, [this, ctx, is_copy, nthread]() {
                             // Signify to kernel that GPU is being used, so reserve cores as necessary
                             OpenMP::Get()->set_reserve_cores(GetReserveCoreCount(true));
                             // 新建一个ThreadWorkerBlock对象
                             auto blk = new ThreadWorkerBlock<kWorkerQueue>();
-                            // 初始化pool成员，线程执行的函数就是下面的lambda表达式
+                            // 初始化pool成员，其构造函数中创建线程，执行就是下面的lambda表达式
+                            // lambda表达式会从本ThreadWorkerBlock对象的阻塞队列中取出要执行的操作。
                             blk->pool.reset(new ThreadPool(
                                 nthread,
                                 [this, ctx, is_copy, blk](std::shared_ptr<dmlc::ManualEvent> ready_event) {
@@ -239,6 +240,7 @@ class ThreadedEnginePerDevice : public ThreadedEngine
                             }
                             else
                             {
+                                // Push之后会通知 Pop函数，
                                 ptr->task_queue.Push(opr_block, opr_block->priority);
                             }
                         }
